@@ -1,0 +1,39 @@
+# data
+data/*
+!data/.gitkeep
+*.csv
+*.zip
+*parquet
+
+# folders
+document
+__pycache__
+dags/cf/cf2_gcs_to_bq/*
+
+# scripts
+constants.py
+
+# notebooks
+
+# Docker
+docker-compose.yaml
+Dockerfile
+
+# logs
+script_logs/*
+!script_logs/.gitkeep
+#logs
+*.log
+
+# vscode
+.vscode
+
+# envs
+.env
+Pipfile.lock
+
+# others
+.idea
+.ipynb_checkpoints
+requirements.txt
+.prettierrc
