@@ -1,5 +1,6 @@
 import pandas as pd
 import flask
+from fastparquet import ParquetFile
 
 
 class DataRetrieverInterface(object):
@@ -16,9 +17,11 @@ class DataRetrieverInterface(object):
 
 class ParquetRetriever(DataRetrieverInterface):
 
-    def __init__(self, bucket_name: str, source_url: str, destiny_path: str):
+    def __init__(self, bucket_name: str, source_url: str, origin_path: str,
+                 destiny_path: str):
         self._bucket_name = bucket_name
         self._source_url = source_url
+        self._origin_path = origin_path
         self._destiny_path = destiny_path
 
         self._data = None
@@ -27,11 +30,12 @@ class ParquetRetriever(DataRetrieverInterface):
         """
         It retrieves the data from the source url and stores it in the data attribute
         """
-        self._data = pd.read_csv(self._source_url, sep=",")
+        origin_path = f"gcs://{self._bucket_name}/{self._origin_path}"
+        self._data = ParquetFile(origin_path).to_pandas()
 
     def process(self):
         """
-        It transforms all columns to string
+        Casting schema
         """
         if self._data is None:
             raise Exception("There is no data to process")

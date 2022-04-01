@@ -8,7 +8,7 @@ data/*
 # folders
 document
 __pycache__
-dags/cf/cf2_gcs_to_bq/*
+dags/cf/cf2_gcs_to_bq
 
 # scripts
 constants.py
@@ -36,4 +36,5 @@ Pipfile.lock
 .idea
 .ipynb_checkpoints
 requirements.txt
+!dags/cf/get-data-upload-to-gcs/requirements.txt
 .prettierrc
