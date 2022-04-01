@@ -38,3 +38,5 @@ Pipfile.lock
 requirements.txt
 !dags/cf/get-data-upload-to-gcs/requirements.txt
 .prettierrc
+dags/cf/get-data-upload-to-gcs/kaggle.py
+dags/cf/get-data-upload-to-gcs/kaggle.json
