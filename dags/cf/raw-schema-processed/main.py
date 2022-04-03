@@ -1,6 +1,8 @@
 import pandas as pd
 import flask
 from fastparquet import ParquetFile
+import json
+from typing import List
 
 
 class DataRetrieverInterface(object):
@@ -17,12 +19,12 @@ class DataRetrieverInterface(object):
 
 class ParquetRetriever(DataRetrieverInterface):
 
-    def __init__(self, bucket_name: str, source_url: str, origin_path: str,
-                 destiny_path: str):
+    def __init__(self, bucket_name: str, origin_path: str, destiny_path: str,
+                 schema_name: str):
         self._bucket_name = bucket_name
-        self._source_url = source_url
         self._origin_path = origin_path
         self._destiny_path = destiny_path
+        self._schema_name = schema_name
 
         self._data = None
 
@@ -39,7 +41,29 @@ class ParquetRetriever(DataRetrieverInterface):
         """
         if self._data is None:
             raise Exception("There is no data to process")
-        self._data = self._data.astype(str)
+        self._data.columns = self._data.columns.str.lower()
+        schema = self._get_schema()
+
+        #TODO: Daniel, no entiendo como pasar esto sin usar pandas...
+        # int_columns = []
+        # str_columns = []
+        # float_columns = []
+
+        # for column, data_type in schema.items():
+        #     if data_type == 'int':
+        #         int_columns.append(column)
+        #     elif data_type == 'float':
+        #         float_columns.append(column)
+        #     elif data_type == 'str':
+        #         str_columns.append(column)
+        #     else:
+        #         raise Exception("Unknown data type")
+
+        # self._parse_int_columns(int_columns)
+        # self._parse_float_columns(float_columns)
+        # self._parse_str_columns(str_columns)
+
+        self._data = self._data.astype(schema)
 
     def save(self):
         """
@@ -50,18 +74,33 @@ class ParquetRetriever(DataRetrieverInterface):
         destiny_path = f"gcs://{self._bucket_name}/{self._destiny_path}"
         self._data.to_parquet(destiny_path, engine='fastparquet')
 
+    def _get_schema(self):
+        with open(self._schema_name, 'r') as schema_file:
+            schema = json.load(schema_file)
+        return schema
+
+    # def _parse_int_columns(self, int_columns: List[str]):
+    #     pass
+
+    # def _parse_str_columns(self, str_columns: List[str]):
+    #     pass
+
+    # def _parse_float_columns(self, float_columns: List[str]):
+    #     pass
+
 
 def main(request):
 
     request_json = request.get_json()
 
     bucket_name = request_json['bucket_name']
-    source_url = request_json['source_url']
+    origin_path = request_json['origin_path']
     destiny_path = request_json['destiny_path']
+    schema_name = request_json['schema_name']
 
     try:
-        parquet_retriever = ParquetRetriever(bucket_name, source_url,
-                                             destiny_path)
+        parquet_retriever = ParquetRetriever(bucket_name, origin_path,
+                                             destiny_path, schema_name)
         parquet_retriever.retrieve()
         parquet_retriever.process()
         parquet_retriever.save()
@@ -70,3 +109,6 @@ def main(request):
         response = flask.Response(str(ex), status=404)
 
     return response
+
+
+main()

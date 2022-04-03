@@ -37,6 +37,8 @@ Pipfile.lock
 .ipynb_checkpoints
 requirements.txt
 !dags/cf/get-data-upload-to-gcs/requirements.txt
+!dags/cf/raw-schema-processed/requirements.txt
 .prettierrc
 dags/cf/get-data-upload-to-gcs/kaggle.py
 dags/cf/get-data-upload-to-gcs/kaggle.json
+dags/cf/raw-schema-processed/schemas.py
