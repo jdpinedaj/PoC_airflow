@@ -7,8 +7,8 @@ WITH flights_airlines AS (
         airlines.airline,
         flights.flight_number,
         flights.origin_airport
-    FROM `{{ params.project_id }}.{{ params.dwh_dataset }}.flights` flights
-    LEFT JOIN `{{ params.project_id }}.{{ params.dwh_dataset }}.airlines` airlines
+    FROM `{{ params.project_id }}.{{ params.my_dataset }}.flights` flights
+    LEFT JOIN `{{ params.project_id }}.{{ params.my_dataset }}.airlines` airlines
     ON flights.airline = airlines.iata_code
     )
 SELECT 
@@ -25,6 +25,6 @@ SELECT
         airports.latitude,
         airports.longitude
 FROM flights_airlines
-LEFT JOIN `{{ params.project_id }}.{{ params.dwh_dataset }}.airports` airports
+LEFT JOIN `{{ params.project_id }}.{{ params.my_dataset }}.airports` airports
 ON flights_airlines.origin_airport = airports.iata
 LIMIT 30

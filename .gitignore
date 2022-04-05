@@ -6,6 +6,7 @@ data/*
 *parquet
 
 # folders
+src_pruebas_que_pueden_ser_utiles
 document
 __pycache__
 dags/cf/cf2_gcs_to_bq
@@ -14,6 +15,7 @@ dags/cf/cf2_gcs_to_bq
 constants.py
 
 # notebooks
+test.ipynb
 
 # Docker
 docker-compose.yaml

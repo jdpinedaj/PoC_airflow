@@ -2,7 +2,7 @@ import pandas as pd
 import flask
 from fastparquet import ParquetFile
 import json
-from typing import List
+#from typing import List
 
 
 class DataRetrieverInterface(object):
@@ -33,7 +33,9 @@ class ParquetRetriever(DataRetrieverInterface):
         It retrieves the data from the source url and stores it in the data attribute
         """
         origin_path = f"gcs://{self._bucket_name}/{self._origin_path}"
-        self._data = ParquetFile(origin_path).to_pandas()
+        self._data = ParquetFile(origin_path)
+        self._data.row_groups = self._data.row_groups[:]
+        self._data = self._data.to_pandas()
 
     def process(self):
         """
@@ -109,6 +111,3 @@ def main(request):
         response = flask.Response(str(ex), status=404)
 
     return response
-
-
-main()

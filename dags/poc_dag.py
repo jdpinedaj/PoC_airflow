@@ -42,7 +42,6 @@ CF2 = 'https://us-central1-bi-fcom-drmb-loyalty-prd.cloudfunctions.net/raw-schem
 # Additional variables
 date = datetime.now().strftime("%Y_%m_%d")
 
-
 dag = DAG(
     dag_id='poc_juan_option_test',
     default_args=default_args,
@@ -64,53 +63,49 @@ start_pipeline = DummyOperator(task_id='start_pipeline', dag=dag)
 ##### Download data from kaggle in parquet, and upload it into gcs using CLOUD FUNCTIONS
 
 download_airlines_data = http(
-    task_id= 'download_airlines_data',
+    task_id='download_airlines_data',
     method='POST',
     http_conn_id=CF1,
     endpoint='main',
     headers={"Content-Type": "application/json"},
     data=json.dumps({
         "bucket_name": GS_BUCKET,
-        "source_url": URL_AIRLINES, 
+        "source_url": URL_AIRLINES,
         "destiny_path": f"raw/{date}_airlines.parquet"
-        }),  # possible request parameters
-    dag=dag
-)
+    }),  # possible request parameters
+    dag=dag)
 
 download_airports_data = http(
-    task_id= 'download_airports_data',
+    task_id='download_airports_data',
     method='POST',
     http_conn_id=CF1,
     endpoint='main',
     headers={"Content-Type": "application/json"},
     data=json.dumps({
         "bucket_name": GS_BUCKET,
-        "source_url": URL_AIRPORTS, 
+        "source_url": URL_AIRPORTS,
         "destiny_path": f"raw/{date}_airports.parquet"
-        }),  # possible request parameters
-    dag=dag
-)
+    }),  # possible request parameters
+    dag=dag)
 
 download_flights_data = http(
-    task_id= 'download_flights_data',
+    task_id='download_flights_data',
     method='POST',
     http_conn_id=CF1,
     endpoint='main',
     headers={"Content-Type": "application/json"},
     data=json.dumps({
         "bucket_name": GS_BUCKET,
-        "source_url": URL_FLIGHTS,, 
+        "source_url": URL_FLIGHTS,
         "destiny_path": f"raw/{date}_flights.parquet"
-        }),  # possible request parameters
-    dag=dag
-)
-
+    }),  # possible request parameters
+    dag=dag)
 
 ##### Change schema to raw_data and load it again in processed_data
 #TODO: Terminar el CF2
 
 processing_airlines_data = http(
-    task_id= 'processing_airlines_data',
+    task_id='processing_airlines_data',
     method='POST',
     http_conn_id=CF2,
     endpoint='main',
@@ -120,12 +115,11 @@ processing_airlines_data = http(
         "origin_path": f"raw/{date}_airlines.parquet",
         "destiny_path": f"processed/{date}_airlines.parquet",
         "schema_name": "airlines_schema",
-        }),  # possible request parameters
-    dag=dag
-)
+    }),  # possible request parameters
+    dag=dag)
 
 processing_airports_data = http(
-    task_id= 'processing_airports_data',
+    task_id='processing_airports_data',
     method='POST',
     http_conn_id=CF2,
     endpoint='main',
@@ -135,12 +129,11 @@ processing_airports_data = http(
         "origin_path": f"raw/{date}_airports.parquet",
         "destiny_path": f"processed/{date}_airports.parquet",
         "schema_name": "airports_schema",
-        }),  # possible request parameters
-    dag=dag
-)
+    }),  # possible request parameters
+    dag=dag)
 
 processing_flights_data = http(
-    task_id= 'processing_flights_data',
+    task_id='processing_flights_data',
     method='POST',
     http_conn_id=CF2,
     endpoint='main',
@@ -150,9 +143,8 @@ processing_flights_data = http(
         "origin_path": f"raw/{date}_flights.parquet",
         "destiny_path": f"processed/{date}_flights.parquet",
         "schema_name": "flights_schema",
-        }),  # possible request parameters
-    dag=dag
-)
+    }),  # possible request parameters
+    dag=dag)
 
 ##### Load data from gcs to bigquery
 
@@ -184,8 +176,7 @@ load_flights_data = GCSToBigQueryOperator(
     task_id='load_flights_data',
     bucket=GS_BUCKET,
     source_objects=[f"processed/{date}_flights.parquet"],
-    destination_project_dataset_table=
-    f'{PROJECT_ID}:{MY_DATASET}.flights_data',
+    destination_project_dataset_table=f'{PROJECT_ID}:{MY_DATASET}.flights_data',
     source_format='parquet',
     write_disposition='WRITE_TRUNCATE',
     skip_leading_rows=1,
@@ -212,9 +203,7 @@ check_flights = BigQueryCheckOperator(
     sql=f'SELECT count(*) FROM `{PROJECT_ID}.{MY_DATASET}.flights_data`',
     dag=dag)
 
-loaded_data_to_bigquery = DummyOperator(task_id='loaded_data',
-dag=dag)
-
+loaded_data_to_bigquery = DummyOperator(task_id='loaded_data', dag=dag)
 
 ##### Generating a view
 
@@ -224,23 +213,56 @@ check_unified_view = BigQueryCheckOperator(
     bigquery_conn_id=PROJECT_ID,
     params={
         'project_id': PROJECT_ID,
-        'my_dataset': MY_DATASET},
-        sql='./sql/unified_view.sql' #TODO: Este archivo hay que meterlo al bucket
-        dag=dag)
+        'my_dataset': MY_DATASET
+    },
+    #sql='./sql/unified_view.sql', #TODO: Este archivo hay que meterlo al bucket
+    sql='''
+        WITH flights_airlines AS (
+            SELECT
+                flights.year,
+                flights.month,
+                flights.day,
+                flights.airline as airline_iata_code,
+                airlines.airline,
+                flights.flight_number,
+                flights.origin_airport
+            FROM `{{ params.project_id }}.{{ params.my_dataset }}.flights` flights
+            LEFT JOIN `{{ params.project_id }}.{{ params.my_dataset }}.airlines` airlines
+            ON flights.airline = airlines.iata_code
+            )
+            SELECT 
+                year,
+                month,
+                day,
+                airline_iata_code,
+                airline,
+                flight_number,
+                origin_airport,
+                airports.airport AS name_airport,
+                airports.city,
+                airports.state,
+                airports.latitude,
+                airports.longitude
+            FROM flights_airlines
+            LEFT JOIN `{{ params.project_id }}.{{ params.my_dataset }}.airports` airports
+            ON flights_airlines.origin_airport = airports.iata
+            LIMIT 30
+        ''',
+    dag=dag)
 
 ##### Finishing pipeline
 
-finish_pipeline = DummyOperator(task_id='finish_pipeline',
-dag=dag)
+finish_pipeline = DummyOperator(task_id='finish_pipeline', dag=dag)
 
 #######################
 ## 5. Setting up dependencies
 #######################
 
-dag >> start_pipeline >> 
-[download_airlines_data, download_airports_data, download_flights_data] >> 
-[processing_airlines_data, processing_airports_data, processing_flights_data] >>
-[load_airlines_data, load_airports_data, load_flights_data]
+start_pipeline >> [
+    download_airlines_data, download_airports_data, download_flights_data
+] >> [
+    processing_airlines_data, processing_airports_data, processing_flights_data
+] >> [load_airlines_data, load_airports_data, load_flights_data]
 
 download_airlines_data >> processing_airlines_data >> load_airlines_data >> check_airlines
 download_airports_data >> processing_airports_data >> load_airports_data >> check_airports
