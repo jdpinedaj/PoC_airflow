@@ -66,7 +66,7 @@ class ParquetRetriever(DataRetrieverInterface):
 
     def save(self):
         """
-        It transform the dataframe to parquet format
+        It saves the data in the destiny path with new schema
         """
         if self._data is None:
             raise Exception("There is no data to write")

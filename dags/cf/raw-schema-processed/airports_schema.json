@@ -1,9 +1,9 @@
 {
-    "iata_code": "str",
-    "airport": "str",
-    "city": "str",
-    "state": "str",
-    "country": "str",
+    "iata_code": "string",
+    "airport": "string",
+    "city": "string",
+    "state": "string",
+    "country": "string",
     "latitude": "float",
     "longitude": "float"
 }

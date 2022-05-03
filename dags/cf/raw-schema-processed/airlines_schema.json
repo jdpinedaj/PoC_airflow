@@ -1,4 +1,4 @@
 {
-    "iata_code": "str",
-    "airline": "object"
+    "iata_code": "string",
+    "airline": "string"
 }

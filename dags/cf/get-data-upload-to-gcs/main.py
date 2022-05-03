@@ -20,7 +20,6 @@ class ParquetRetriever(DataRetrieverInterface):
         self._bucket_name = bucket_name
         self._source_url = source_url
         self._destiny_path = destiny_path
-
         self._data = None
 
     def retrieve(self):
@@ -50,7 +49,6 @@ class ParquetRetriever(DataRetrieverInterface):
 def main(request):
 
     request_json = request.get_json()
-
     bucket_name = request_json['bucket_name']
     source_url = request_json['source_url']
     destiny_path = request_json['destiny_path']
