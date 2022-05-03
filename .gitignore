@@ -6,11 +6,9 @@ data/*
 *parquet
 
 # folders
-src_pruebas_que_pueden_ser_utiles
 document
 __pycache__
-dags/cf/cf2_gcs_to_bq
-examples/*
+examples
 
 # scripts
 constants.py
@@ -42,6 +40,4 @@ requirements.txt
 !dags/cf/get-data-upload-to-gcs/requirements.txt
 !dags/cf/raw-schema-processed/requirements.txt
 .prettierrc
-dags/cf/get-data-upload-to-gcs/kaggle.py
-dags/cf/get-data-upload-to-gcs/kaggle.json
 dags/cf/raw-schema-processed/schemas.py
