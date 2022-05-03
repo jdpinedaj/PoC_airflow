@@ -6,7 +6,6 @@ data/*
 *parquet
 
 # folders
-document
 __pycache__
 examples
 
@@ -36,8 +35,6 @@ Pipfile.lock
 # others
 .idea
 .ipynb_checkpoints
-requirements.txt
-!dags/cf/get-data-upload-to-gcs/requirements.txt
-!dags/cf/raw-schema-processed/requirements.txt
 .prettierrc
-dags/cf/raw-schema-processed/schemas.py
+cloud_functions/raw-schema-processed/schemas.py
+cloud_functions/sql
