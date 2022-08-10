@@ -212,20 +212,22 @@ load_flights_data = GCSToBigQueryOperator(
 
 #? 4.5. Data check
 
-check_airlines = BigQueryCheckOperator(task_id='check_airlines',
-                                       use_legacy_sql=False,
-                                       location=GCP_LOCATION,
-                                       bigquery_conn_id=GCP_CONNECTION_ID,
-                                       params={
-                                           'project_id': PROJECT_ID,
-                                           'my_dataset': MY_DATASET
-                                       },
-                                       sql='''
+check_airlines = BigQueryCheckOperator(
+    task_id='check_airlines',
+    use_legacy_sql=False,
+    location=GCP_LOCATION,
+    bigquery_conn_id=GCP_CONNECTION_ID,
+    params={
+        'project_id': PROJECT_ID,
+        'my_dataset': MY_DATASET
+    },
+    sql='''
     #standardSQL
     SELECT count(*) AS num_airlines 
     FROM `{{ params.project_id }}.{{ params.my_dataset }}.airlines_data`
     ''',
-                                       dag=dag)
+    dag=dag,
+)
 
 check_airports = BigQueryCheckOperator(task_id='check_airports',
                                        use_legacy_sql=False,
